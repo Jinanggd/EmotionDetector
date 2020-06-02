@@ -1,3 +1,4 @@
+let debugFlag = true;
 let videoWidth, videoHeight;
 // whether streaming video from the camera.
 let streaming = false;
@@ -6,6 +7,9 @@ let video = document.getElementById('video');
 let canvasOutput = document.getElementById('canvasOutput');
 let canvasOutputCtx = canvasOutput.getContext('2d');
 let stream = null;
+let readyOpenCV = document.getElementById('OpenCV_ready');
+let readyModel = document.getElementById('Emotion_ready');
+let readyCamera = document.getElementById('Camera_ready');
 
 let detectFace = document.getElementById('face');
 //let detectEye = document.getElementById('eye');
@@ -53,10 +57,14 @@ let canvasBufferCtx = null;
 
 //Pretrained Emotion Model
 async function createModel(path){
+    //Load the emotion model
     let model = await tf.loadLayersModel(path);
-    console.log("Emotion Model has been loaded");
+    if(debugFlag) console.log("[DEBUG] Emotion Model is ready");
+    readyModel.innerHTML = "Emotion Model is ready";
+
     startCamera();
-    console.log("Camera is starting");
+    if(debugFlag) console.log("[DEBUG] Camera is starting ... ");
+    readyCamera.innerHTML = "Camera is starting";
     return model;
 }
 async function loadEmotionModel(path){
@@ -79,17 +87,7 @@ function startVideoProcessing() {
     srcMat = new cv.Mat(videoHeight, videoWidth, cv.CV_8UC4);
     grayMat = new cv.Mat(videoHeight, videoWidth, cv.CV_8UC1);
 
-    //Load the emotion model
-
-    //LOADING PRETRAINED CLASSIFIERS FOR FACE DETECTION
-    faceClassifier = new cv.CascadeClassifier();
-    faceClassifier.load('haarcascade_frontalface_default.xml');
-
-    profileClassifier = new cv.CascadeClassifier();
-    profileClassifier.load('haarcascade_profileface.xml')
-    eyeClassifier = new cv.CascadeClassifier();
-    eyeClassifier.load('haarcascade_eye.xml')
-
+    readyCamera.innerHTML = "Camera is OK";
     requestAnimationFrame(processVideo); // Main loop here!
 }
 
@@ -100,7 +98,7 @@ function processVideo() {
     cv.cvtColor(srcMat, grayMat, cv.COLOR_RGBA2GRAY);
     let faces = [];
     let eyes = [];
-   // let size;
+
     if (detectFace.checked) {
         let faceVect = new cv.RectVector();//Final detected Objects in detectMultiScale
         let profVect = new cv.RectVector();
@@ -175,7 +173,7 @@ function drawAndComputeEmotions(ctx, results, color, size) {
 
         let cT = ctx.getImageData(rect.x*xRatio,rect.y*yRatio,rect.width*xRatio,rect.height*yRatio);
         cT = preprocess(cT);
-        //console.log(cT);
+
         //Circumplex model fer el mapping
         //Valence Arousal
         //Aurélien Géron - Hands on Machine Learning with Scikit-Learn & TensorFlow
@@ -193,7 +191,6 @@ function drawAndComputeEmotions(ctx, results, color, size) {
         catch(err){
             console.log(err);
         }
-
 
         //Face Detection
         ctx.lineWidth = 3;
@@ -237,7 +234,18 @@ function stopCamera() {
 }
 
 function opencvIsReady() {
-    console.log('OpenCV.js is ready');
+    if(debugFlag) console.log('[DEBUG] OpenCV is ready');
+
+    //LOADING PRETRAINED CLASSIFIERS FOR FACE DETECTION
+    faceClassifier = new cv.CascadeClassifier();
+    faceClassifier.load('haarcascade_frontalface_default.xml');
+
+    profileClassifier = new cv.CascadeClassifier();
+    profileClassifier.load('haarcascade_profileface.xml');
+    eyeClassifier = new cv.CascadeClassifier();
+    eyeClassifier.load('haarcascade_eye.xml');
+
+    readyOpenCV.innerHTML = "OpenCV is ready";
+
     loadEmotionModel('../../Resources/model.json');
-    // startCamera();
 }
