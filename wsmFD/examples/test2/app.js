@@ -54,6 +54,9 @@ let canvasBufferCtx = null;
 //Pretrained Emotion Model
 async function createModel(path){
     let model = await tf.loadLayersModel(path);
+    console.log("Emotion Model has been loaded");
+    startCamera();
+    console.log("Camera is starting");
     return model;
 }
 async function loadEmotionModel(path){
@@ -77,7 +80,7 @@ function startVideoProcessing() {
     grayMat = new cv.Mat(videoHeight, videoWidth, cv.CV_8UC1);
 
     //Load the emotion model
-    loadEmotionModel('../../Resources/model.json');
+
     //LOADING PRETRAINED CLASSIFIERS FOR FACE DETECTION
     faceClassifier = new cv.CascadeClassifier();
     faceClassifier.load('haarcascade_frontalface_default.xml');
@@ -235,5 +238,6 @@ function stopCamera() {
 
 function opencvIsReady() {
     console.log('OpenCV.js is ready');
-    startCamera();
+    loadEmotionModel('../../Resources/model.json');
+    // startCamera();
 }
